@@ -1,6 +1,6 @@
 import react, {useEffect, useState} from 'react';
 import TutorCard from './SMALL_components/TutorCard';
-import image1 from '../assets/Top_tutors/src\Image1.png';
+import image1 from '../assets/Top_tutors/Image1.png';
 import image2 from '../assets/Top_tutors/Image2.png'
 import image3 from '../assets/Top_tutors/Image3.png'
 import image4 from '../assets/Top_tutors/Image4.png'
