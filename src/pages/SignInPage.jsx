@@ -39,6 +39,7 @@ const SignInPage = () => {
       if (response.success) {
         // Store token and user data
         localStorage.setItem("authToken", response.token);
+        // console.log('Token:', localStorage.getItem('authToken'));
         localStorage.setItem("userRole", response.user.role || 'student');
         localStorage.setItem("userId", response.user._id);
         

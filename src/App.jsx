@@ -1,4 +1,6 @@
 import React from 'react';
+import UserProvider from "./context/UserContext"; // import the provider
+
 import ScrollToTop from './components/SMALL_components/ScrollToTop';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
@@ -12,7 +14,8 @@ import Dashboard from './pages/Dashboard';
 // import Overview from './components/Dashboard-Component/Overview';
 function App() {
   return (
-    <Router>
+    <UserProvider>
+   <Router>
     <div className="bg-white min-h-screen font-sans">
     <ScrollToTop />
       <NavMenu/>
@@ -28,6 +31,7 @@ function App() {
       <Footer />
     </div>
     </Router>
+    </UserProvider>
   );
 }
 

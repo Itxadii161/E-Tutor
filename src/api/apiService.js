@@ -13,10 +13,11 @@ const apiReq = async (endpoint, method = 'GET', data = null, customConfig = {}) 
       method,
       url: `${API_BASE_URL}${endpoint}`,
       headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }), // Add auth if token exists
-        ...customConfig.headers // Allow custom headers to override
-      },
+  ...(token && { 'Authorization': `Bearer ${token}` }),
+  ...customConfig.headers,
+  ...(customConfig.headers?.['Content-Type'] ? {} : { 'Content-Type': 'application/json' })
+},
+
       data,
       ...customConfig // Spread other custom config
     };
@@ -58,18 +59,22 @@ const changePassword = async (formData) => {
   return await apiReq('/users/change-password', 'PUT', formData);  // PUT request to '/change-password' route
 };
 
-// Become Tutor (Submit Tutor Application)
+
+
+
 const becomeTutor = async (formData) => {
   const form = new FormData();
-  const token = localStorage.getItem('authToken'); // Get token here
-  
-  // Add each form field to the FormData object
+  const token = localStorage.getItem('authToken');
+
+  console.log("Auth Token used in tutor request:", token);
+  if (!token) {
+    alert("No auth token found. Please log in.");
+    throw new Error("Missing token");
+  }
+
   for (const key in formData) {
     if (Array.isArray(formData[key])) {
-      // If the field contains files (like 'educationCertificates')
-      formData[key].forEach((file, index) => {
-        form.append(key, file); // Simplified append without array index
-      });
+      formData[key].forEach(file => form.append(key, file));
     } else if (formData[key] !== null && formData[key] !== undefined) {
       form.append(key, formData[key]);
     }
@@ -77,13 +82,14 @@ const becomeTutor = async (formData) => {
 
   const config = {
     headers: {
-      'Content-Type': 'multipart/form-data',
-      'Authorization': `Bearer ${token}` // Explicitly add auth token
-    },
+      'Authorization': `Bearer ${token}`
+      // DO NOT manually set 'Content-Type' for FormData
+    }
   };
 
-  return await apiReq('/tutors/becometutor', 'POST', form, config);
+  return await apiReq('/becometutor', 'POST', form, config);
 };
+
   // Get the current user's role
 const getUserRole = async (token) => {
   return await apiReq('/users/getUserRole', 'GET', null, {

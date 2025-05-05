@@ -1,8 +1,11 @@
 import React, { useState, useContext } from "react";
 import { becomeTutor, getUserRole } from "../api/apiService";
 import { UserContext } from "../context/UserContext";
+import { useNavigate } from "react-router-dom";
 
 const BecomeTutorForm = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     fullName: "",
     dateOfBirth: "",
@@ -17,8 +20,8 @@ const BecomeTutorForm = () => {
     experienceYears: "",
     pastInstitutions: "",
     certifications: "",
-    availabilityDays: "",
-    availabilityTimeSlots: "",
+    availability: "",
+    // availabilityTimeSlots: "",
     resumeUrl: "",
     educationCertificates: [],
   });
@@ -45,6 +48,7 @@ const BecomeTutorForm = () => {
       await becomeTutor(formData);
       setMessage("Application submitted successfully!");
       const token = localStorage.getItem('authToken'); // Get token from storage
+      // console.log('Token:', localStorage.getItem('authToken'));
       if (token) {
         const roleRes = await getUserRole(token); // Pass token explicitly
         if (roleRes?.role) {
@@ -53,6 +57,7 @@ const BecomeTutorForm = () => {
       }
     } catch (error) {
       console.error("Submit error:", error);
+      // navigate('/signin-page')
       setMessage(
         error?.response?.data?.message || 
         error?.response?.data?.error || 
@@ -82,8 +87,8 @@ const BecomeTutorForm = () => {
     { name: "experienceYears", type: "number", placeholder: "Experience (years)" },
     { name: "pastInstitutions", placeholder: "Past Institutions (comma-separated)" },
     { name: "certifications", placeholder: "Certifications (comma-separated)" },
-    { name: "availabilityDays", placeholder: "Available Days (comma-separated)" },
-    { name: "availabilityTimeSlots", placeholder: "Time Slots (comma-separated)" },
+    // { name: "availabilityDays", placeholder: "Available Days (comma-separated)" },
+    { name: "availability", placeholder: "Avalibility days and time." },
     { name: "resumeUrl", placeholder: "Resume URL" },
   ];
 
