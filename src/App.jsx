@@ -8,7 +8,7 @@ import BecomeTutorForm from './components/BecomeTutorForm'
 import HomePage from './pages/Homepage'
 import SignupPage from './pages/SignupPage'
 import SignInPage from './pages/SignInPage'
-import Dashboard from './pages/Dashboard-page';
+import Dashboard from './pages/Dashboard';
 // import Overview from './components/Dashboard-Component/Overview';
 function App() {
   return (
@@ -22,7 +22,7 @@ function App() {
           <Route path="/become-tutor-form" element={<BecomeTutorForm />} />
           <Route path='/signup-page' element={<SignupPage/>} />
           <Route path='/signin-page' element={<SignInPage/>} />
-          <Route path='/dashboard-page' element={<Dashboard/>} />
+          <Route path='/dashboard' element={<Dashboard/>} />
           {/* <Route path="/overveiw" element={<Overview />} /> */}
         </Routes> 
       <Footer />
