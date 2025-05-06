@@ -82,7 +82,8 @@ const becomeTutor = async (formData) => {
 
   const config = {
     headers: {
-      'Authorization': `Bearer ${token}`
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
       // DO NOT manually set 'Content-Type' for FormData
     }
   };

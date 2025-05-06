@@ -21,9 +21,8 @@ const BecomeTutorForm = () => {
     pastInstitutions: "",
     certifications: "",
     availability: "",
-    // availabilityTimeSlots: "",
-    resumeUrl: "",
-    educationCertificates: [],
+    resumeFile: null,  // Added to handle the file upload for resume
+    educationCertificates: [], // Handles multiple file uploads
   });
 
   const [loading, setLoading] = useState(false);
@@ -33,7 +32,9 @@ const BecomeTutorForm = () => {
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "educationCertificates") {
-      setFormData({ ...formData, [name]: Array.from(files) });
+      setFormData({ ...formData, [name]: Array.from(files) }); // Handle multiple files
+    } else if (name === "resumeFile") {
+      setFormData({ ...formData, [name]: files[0] }); // Only one resume file
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -43,12 +44,37 @@ const BecomeTutorForm = () => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
-  
+
+    // Basic Validation
+    if (!formData.fullName || !formData.resumeFile || formData.educationCertificates.length === 0) {
+      setMessage("Please ensure all required fields are filled.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      await becomeTutor(formData);
+      // File handling: upload resume and certificates first
+      const formDataToSubmit = new FormData();
+      formDataToSubmit.append("resume", formData.resumeFile);
+      formData.educationCertificates.forEach((file, index) => {
+        formDataToSubmit.append(`educationCertificates[${index}]`, file);
+      });
+
+      // Call the API to upload the files (replace this with actual API logic)
+      const uploadResponse = await uploadFiles(formDataToSubmit);
+
+      // Assuming the backend returns URLs for the uploaded files
+      const updatedFormData = {
+        ...formData,
+        resumeUrl: uploadResponse.resumeUrl, // Assume this is the URL of the uploaded resume
+        educationCertificates: uploadResponse.educationCertificates, // URLs of uploaded certificates
+      };
+
+      // Call the becomeTutor API with the updated data
+      await becomeTutor(updatedFormData);
+
       setMessage("Application submitted successfully!");
-      const token = localStorage.getItem('authToken'); // Get token from storage
-      // console.log('Token:', localStorage.getItem('authToken'));
+      const token = localStorage.getItem('authToken');
       if (token) {
         const roleRes = await getUserRole(token); // Pass token explicitly
         if (roleRes?.role) {
@@ -57,7 +83,6 @@ const BecomeTutorForm = () => {
       }
     } catch (error) {
       console.error("Submit error:", error);
-      // navigate('/signin-page')
       setMessage(
         error?.response?.data?.message || 
         error?.response?.data?.error || 
@@ -66,6 +91,22 @@ const BecomeTutorForm = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Function to simulate file upload (replace with actual API call)
+  const uploadFiles = async (formData) => {
+    // Simulate uploading files and return the URLs
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          resumeUrl: "https://example.com/resume-file-url", // Simulated URL
+          educationCertificates: [
+            "https://example.com/certificate1-url",
+            "https://example.com/certificate2-url",
+          ], // Simulated URLs for education certificates
+        });
+      }, 2000); // Simulate file upload delay
+    });
   };
 
   // Configuration array for dynamic rendering
@@ -87,9 +128,7 @@ const BecomeTutorForm = () => {
     { name: "experienceYears", type: "number", placeholder: "Experience (years)" },
     { name: "pastInstitutions", placeholder: "Past Institutions (comma-separated)" },
     { name: "certifications", placeholder: "Certifications (comma-separated)" },
-    // { name: "availabilityDays", placeholder: "Available Days (comma-separated)" },
-    { name: "availability", placeholder: "Avalibility days and time." },
-    { name: "resumeUrl", placeholder: "Resume URL" },
+    { name: "availability", placeholder: "Availability days and time." },
   ];
 
   return (
@@ -128,7 +167,7 @@ const BecomeTutorForm = () => {
                 value={formData[field.name]}
                 onChange={handleChange}
                 className="p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500"
-                required={field.name === "fullName" || field.name === "resumeUrl"}
+                required={field.name === "fullName" || field.name === "resumeFile"}
               />
             );
           })}
@@ -141,6 +180,17 @@ const BecomeTutorForm = () => {
               onChange={handleChange}
               multiple
               className="w-full p-2 border border-gray-300 rounded-xl focus:outline-none"
+            />
+          </div>
+
+          <div className="col-span-2">
+            <label className="block mb-1 font-medium">Upload Resume:</label>
+            <input
+              name="resumeFile"
+              type="file"
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded-xl focus:outline-none"
+              required
             />
           </div>
 

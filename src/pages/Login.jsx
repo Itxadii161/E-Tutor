@@ -4,7 +4,7 @@ import { UserContext } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import illustration from "../assets/signin-page/Illustrations.png";
 
-const SignInPage = () => {
+const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -130,4 +130,4 @@ const SignInPage = () => {
   );
 };
 
-export default SignInPage;
+export default Login;
