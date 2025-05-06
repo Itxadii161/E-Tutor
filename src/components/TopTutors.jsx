@@ -18,31 +18,33 @@ const TopTutors = () => {
                 { id: "4", image: image4, name: 'Albert Flores', profession: 'Adobe Instructor', rating: '4.7', students: '511,123' },
                 { id: "5", image: image5, name: 'Kathryn Murphy', profession: 'Lead Developer', rating: '4.2', students: '2,711' },
             ];
-            setTutors(topTutors.slice(0, 5));
+            setTutors(topTutors);
         };
         fetchTutors();
     }, []);
 
     return (
-        <section className="h-[500px] flex justify-evenly flex-col items-center py-8">
-            <header className='text-3xl font-bold mb-8'>
-                Top instructor of the month
-            </header>
-            
-            <div className='grid grid-cols-5 gap-6 w-full px-8 mb-8'>
-                {tutors.map((tutor) => (
-                    <TutorCard key={tutor.id} tutor={tutor} />
-                ))}
+        <section className="py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto">
+                <header className='text-2xl sm:text-3xl font-bold text-center mb-8 lg:mb-12'>
+                    Top Instructors of the Month
+                </header>
+                
+                <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6'>
+                    {tutors.map((tutor) => (
+                        <TutorCard key={tutor.id} tutor={tutor} />
+                    ))}
+                </div>
+                
+                <footer className='text-gray-600 text-center mt-10 text-sm sm:text-base'>
+                    Thousands of students looking for an instructor. Start teaching & earning now!{' '}
+                    <a href="#" className="text-[#FF6636] hover:underline font-medium">
+                        Become an Instructor
+                    </a>
+                </footer>
             </div>
-            
-            <footer className='text-gray-600 text-center'>
-                Thousands of students looking for an instructor. Start teaching & earning now!{' '}
-                <a href="#" className="text-[#FF6636] hover:underline">
-                    Become Instructor
-                </a>
-            </footer>
         </section>
     );
 };
 
-export default TopTutors;
+export default TopTutors; 

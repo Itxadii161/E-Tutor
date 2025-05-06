@@ -12,10 +12,11 @@ import {
   import Dashboard from "./pages/Dashboard";
   import BecomeTutorForm from "./components/BecomeTutorForm";
   import PrivateRoutes from "./components/PrivateRoutes";
-  
+  // import  GoogleLoginButton  from "./pages/GoogleLoginButton";
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route path="/" element={<App />}>
+        {/* <Route path="/googlelogin" element={<GoogleLoginButton/>}/> */}
         <Route index element={<HomePage />} />
         <Route path="signup-page" element={<SignupPage />} />
         <Route path="login" element={<Login />} />

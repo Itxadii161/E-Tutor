@@ -1,56 +1,54 @@
 import becomeInstructorImage from '../assets/Home-page-images/Become an Instructor.png';
 
 const BecomeInstructor = () => {
-    return (
-        <div className="bg-gray-100 h-[500px] flex justify-center items-center gap-5">
-            <div className='flex items-center'>
-                <div className='absolute p-3 flex flex-col'>
-                    <h1 className='text-gray-300 mt-4 mb-4 text-3xl font-semibold'>Become An Instructor</h1>
-                    <p className='text-gray-200 mb-6 font-semibold'>
-                        Instructors from around the world teach millions <br/> 
-                        of students on Udemy. We provide the tools <br/> 
-                        and skills to teach what you love.
-                    </p>
-                    <button className='text-[#FF6636] rounded-md bg-gray-100 mb-4 p-2 w-36 text-1xl font-semibold'>
-                        Start Teaching
-                    </button>
-                </div>
-                <div>
-                    <img src={becomeInstructorImage} alt="Become an instructor" className='w-full h-[230px]'/>
-                </div>
+  return (
+    <div className="bg-gray-50 py-12 px-4 sm:px-6">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left Card - Image with overlay */}
+        <div className="relative rounded-lg overflow-hidden h-72">
+          <img 
+            src={becomeInstructorImage} 
+            alt="Instructor teaching" 
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40 flex items-center p-8">
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-3">Become An Instructor</h2>
+              <p className="text-gray-200 mb-6 max-w-md leading-snug">
+                Teach millions of students worldwide with our powerful tools and support system.
+              </p>
+              <button className="bg-white text-[#FF6636] rounded-md px-5 py-2.5 font-semibold hover:bg-gray-50 transition-colors">
+                Start Teaching Today
+              </button>
             </div>
-            
-            <div className='bg-white h-[230px] w-[560px] flex flex-col p-5'>
-                <h1 className='text-3xl font-semibold pb-3 mb-3'>Your teaching & earning steps</h1>
-                
-                {/* Proper table structure with tbody */}
-                <table className='w-full'>
-                    <tbody>
-                        <tr className='flex'>
-                            <td className='flex gap-2 items-center w-[300px]'>
-                                <p className='w-10 h-10 flex justify-center items-center text-xl font-semibold rounded-full text-blue-600 bg-blue-100'>1</p>
-                                <p className='font-semibold'>Apply to become instructor</p>
-                            </td>
-                            <td className='flex gap-2 items-center w-[300px]'>
-                                <p className='w-10 h-10 flex justify-center items-center text-xl font-semibold rounded-full bg-pink-100 text-pink-600'>2</p>
-                                <p className='font-semibold'>Build & edit your profile</p>
-                            </td>
-                        </tr>
-                        <tr className='flex'>    
-                            <td className='flex gap-2 items-center w-[300px]'>
-                                <p className='w-10 h-10 flex justify-center items-center text-xl font-semibold rounded-full text-red-600 bg-red-100'>3</p>
-                                <p className='font-semibold'>Create your new course</p>
-                            </td>
-                            <td className='flex gap-2 items-center w-[300px]'>
-                                <p className='w-10 h-10 flex justify-center items-center text-xl font-semibold rounded-full text-green-600 bg-green-100'>4</p>
-                                <p className='font-semibold'>Start teaching & earning</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+          </div>
         </div>
-    )
-}
+
+        {/* Right Card - Steps */}
+        <div className="bg-white rounded-lg shadow-sm p-8 h-72 flex flex-col">
+          <h3 className="text-xl font-bold text-gray-800 mb-6">Your Teaching Journey</h3>
+          <div className="grid grid-cols-2 gap-5 flex-grow">
+            {[
+              {num: 1, color: 'blue', text: 'Login or Signup First', desc: 'Simple application'},
+              {num: 2, color: 'pink', text: 'Apply to become instructor', desc: 'Showcase skills'},
+              {num: 3, color: 'red', text: 'Build your profile', desc: 'Easy tools'},
+              {num: 4, color: 'green', text: 'Start earning', desc: 'Global reach'}
+            ].map((step) => (
+              <div key={step.num} className="flex items-start space-x-3">
+                <span className={`flex-shrink-0 w-9 h-9 rounded-full bg-${step.color}-100 text-${step.color}-600 flex items-center justify-center font-medium mt-0.5`}>
+                  {step.num}
+                </span>
+                <div>
+                  <p className="font-semibold text-gray-800">{step.text}</p>
+                  <p className="text-gray-500 text-sm mt-1">{step.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default BecomeInstructor;
