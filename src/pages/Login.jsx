@@ -4,7 +4,7 @@ import { UserContext } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import illustration from "../assets/signin-page/Illustrations.png";
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
-
+import { GOOGLE_CLIENT_ID } from "../api/apiService"; 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,6 +23,9 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
+//     const response = await loginUser({ email, password });
+// console.log(response);
+
 
     if (!email || !password) {
       setMessage("Please fill in all fields");
@@ -37,6 +40,9 @@ const Login = () => {
         localStorage.setItem("authToken", response.token);
         localStorage.setItem("userRole", response.user.role || "student");
         localStorage.setItem("userId", response.user._id);
+        localStorage.setItem("user", JSON.stringify(response.user)); // Store the user object
+        // console.log(localStorage.getItem('authtoken'));
+
 
         setRole(response.user.role || "student");
         setUser(response.user);
@@ -66,6 +72,9 @@ const Login = () => {
         localStorage.setItem("authToken", data.token);
         localStorage.setItem("userRole", data.user.role || "student");
         localStorage.setItem("userId", data.user._id);
+        localStorage.setItem("user", JSON.stringify(data.user)); // Store the user object
+        // console.log(localStorage.getItem("authToken"));
+
 
         setRole(data.user.role || "student");
         setUser(data.user);
@@ -145,7 +154,7 @@ const Login = () => {
             </div>
           </div>
 
-          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+          <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
             <div className="flex flex-col items-center gap-4">
               <GoogleLogin
                 onSuccess={handleGoogleLoginSuccess}

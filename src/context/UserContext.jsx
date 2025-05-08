@@ -1,60 +1,78 @@
 import React, { createContext, useState, useEffect } from "react";
-import { getUserRole } from "../api/apiService";
-import { useNavigate } from "react-router-dom"; // Import useNavigate inside the component
+import { getUserRole } from "../api/apiService"; // renamed for clarity
 
-// Create a new context to share user-related state across the app
 export const UserContext = createContext();
 
 const UserProvider = ({ children }) => {
-  // const navigate = useNavigate(); // Move useNavigate inside the component
-  const [role, setRole] = useState("");
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [sessionExpired, setSessionExpired] = useState(false);
+  // User state with persistent storage
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
 
-  // Function to handle logout and session cleanup
+  const [role, setRole] = useState(() => {
+    // You can initialize the role from the stored user or an empty string
+    const storedRole = localStorage.getItem("userRole");
+    return storedRole ? storedRole : ""; 
+  });
+
+  const [loading, setLoading] = useState(true);  // Loading state while fetching user
+  const [sessionExpired, setSessionExpired] = useState(false);  // Handle session expiry
+
+  // Logout function
   const logout = () => {
     localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
     localStorage.removeItem("userRole");
-    localStorage.removeItem("userId");
-    setRole("");
     setUser(null);
-    setSessionExpired(true); // Mark session as expired
+    setRole("");  // Reset role during logout
+    setSessionExpired(true);  // Mark session as expired
     console.log("User logged out successfully");
-    // navigate("/login");
+  };
+
+  // Update user function (store the updated user)
+  const updateUser = (updatedUserData) => {
+    setUser(updatedUserData);
+    localStorage.setItem("user", JSON.stringify(updatedUserData));
   };
 
   useEffect(() => {
-    const fetchRole = async () => {
+    const fetchUser = async () => {
       const token = localStorage.getItem("authToken");
       if (!token) {
-        setRole("");
-        setUser(null);
-        setSessionExpired(true); // Automatically mark session as expired if no token
+        logout();
         setLoading(false);
-        // navigate("/login");
         return;
       }
 
       try {
         const res = await getUserRole(token);
-        if (res?.role) {
-          setRole(res.role);
-          setUser(res.user);
+        if (res?.user) {
+          setUser(res.user);  // Set user to state if fetched successfully
+          setRole(res.user.role);  // Set role to state
+          localStorage.setItem("user", JSON.stringify(res.user));  // Store user in localStorage
+          localStorage.setItem("userRole", res.user.role);  // Store role in localStorage
+        } else {
+          logout();  // Logout if user role not fetched properly
         }
       } catch (err) {
-        logout(); // Logout in case of an error
+        logout(); // Clear session on error
       } finally {
-        setLoading(false);
+        setLoading(false);  // Set loading to false after API call
       }
     };
 
-    fetchRole();
-  }, []); // Only run on initial mount
+    // Fetch user data on initial load if no user is set
+    if (!user) {
+      fetchUser();
+    } else {
+      setLoading(false);  // Set loading to false if user already exists
+    }
+  }, [user]);  // Run effect if user changes
 
   return (
-    <UserContext.Provider value={{ role, setRole, user, setUser, logout, sessionExpired }}>
-      {children}
+    <UserContext.Provider value={{ user, setUser, role, setRole, logout, updateUser, sessionExpired }}>
+      {!loading && children} {/* Render children only if loading is complete */}
     </UserContext.Provider>
   );
 };

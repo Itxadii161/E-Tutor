@@ -1,59 +1,43 @@
-import React, { useState } from "react";
-import Overview from "../components/Dashboard-Component/Overview";
-import Teachers from "../components/Dashboard-Component/Teachers";
-import Message from "../components/Dashboard-Component/Message";
-import Settings from "../components/Dashboard-Component/Settings";
-import userImg from "../assets/Teachers-images/t-1.png";
+// TeacherDashboard.jsx
+import React, { useState, useContext } from "react";
+import { UserContext } from "../context/UserContext";
+import TopNavigationBar from "./TopNavigationBar";
+import WelcomeMessage from "./WelcomeMessage";
+import SettingsPage from "./SettingsPage";
+import ChatComponent from "./ChatComponent";
 
 const TeacherDashboard = () => {
-  const [activeComponent, setActiveComponent] = useState(<Overview />);
+  const { role, user } = useContext(UserContext);
+  const [activeTab, setActiveTab] = useState("welcome");
+
+  const renderComponent = () => {
+    switch (activeTab) {
+      case "messages": return <ChatComponent currentUser={user} />;
+      case "settings": return <SettingsPage />;
+      default: return <WelcomeMessage />;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="bg-white shadow-md rounded-xl p-6 flex justify-between items-center">
-        <div>
-          <img className="w-20 rounded-full" src={userImg} alt="" />
-          <h1 className="text-xl font-bold">Kevin Gilbert</h1>
-          <p className="text-gray-600">Instructor</p>
-        </div>
+    <div className="min-h-screen bg-indigo-50 p-4">
+      <TopNavigationBar />
+      {role === "tutor" && <WelcomeMessage />}
+      
+      <div className="flex gap-4 mt-4 border-b border-indigo-200">
+        {["welcome", "messages", "settings"].map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`pb-2 px-4 capitalize ${activeTab === tab ? "text-indigo-700 border-b-2 border-indigo-600" : "text-indigo-500"}`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
-      <div className="bg-white shadow-md rounded-xl mt-4 p-4 flex gap-6">
-        <button
-          onClick={() => setActiveComponent(<Overview />)}
-          className={`pb-1 font-semibold ${
-            activeComponent.type === Overview ? "border-b-2 border-black" : "text-gray-500"
-          }`}
-        >
-          Overview
-        </button>
-        <button
-          onClick={() => setActiveComponent(<Teachers />)}
-          className={`pb-1 font-semibold ${
-            activeComponent.type === Teachers ? "border-b-2 border-black" : "text-gray-500"
-          }`}
-        >
-          Teachers
-        </button>
-        <button
-          onClick={() => setActiveComponent(<Message />)}
-          className={`pb-1 font-semibold ${
-            activeComponent.type === Message ? "border-b-2 border-black" : "text-gray-500"
-          }`}
-        >
-          Messages
-        </button>
-        <button
-          onClick={() => setActiveComponent(<Settings />)}
-          className={`pb-1 font-semibold ${
-            activeComponent.type === Settings ? "border-b-2 border-black" : "text-gray-500"
-          }`}
-        >
-          Settings
-        </button>
+      <div className="mt-4">
+        {renderComponent()}
       </div>
-
-      <div className="mt-6">{activeComponent}</div>
     </div>
   );
 };
