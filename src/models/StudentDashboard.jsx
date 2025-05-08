@@ -15,7 +15,7 @@ const StudentDashboard = () => {
       <TopNavigationBar />
       
       {/* Welcome Message */}
-      {role === "tutor" && <WelcomeMessage />}
+      {/* {role === "tutor" && <WelcomeMessage />} */}
 
       {/* Dashboard Content */}
       <div className="bg-white shadow-md rounded-xl mt-4 p-4 flex gap-6">

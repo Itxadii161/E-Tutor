@@ -62,7 +62,7 @@ const ChatComponent = ({ currentUser }) => {
     <div className="flex flex-col lg:flex-row w-full h-screen max-w-6xl mx-auto bg-white rounded-lg overflow-hidden shadow-xl">
       {/* Conversations List */}
       <div className={`w-full lg:w-1/3 bg-gradient-to-br from-indigo-50 to-white border-r border-indigo-100 p-4 overflow-y-auto ${selectedUser ? 'hidden lg:block' : 'block'}`}>
-        <div className="flex items-center justify-between  mb-6">
+        <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-indigo-900">Messages</h2>
           <div className="relative mt-2">
             <input
@@ -75,7 +75,7 @@ const ChatComponent = ({ currentUser }) => {
             </svg>
           </div>
         </div>
-        
+
         {loadingConversations ? (
           <div className="flex justify-center items-center h-32">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
@@ -190,15 +190,9 @@ const ChatComponent = ({ currentUser }) => {
                     key={msg._id}
                     className={`flex ${msg.sender === currentUser._id ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div className={`relative rounded-2xl p-4 max-w-xs lg:max-w-md shadow-sm ${
-                      msg.sender === currentUser._id
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-white text-gray-800 border border-gray-200'
-                    }`}>
+                    <div className={`relative rounded-2xl p-4 max-w-xs lg:max-w-md shadow-sm ${msg.sender === currentUser._id ? 'bg-indigo-600 text-white' : 'bg-white text-gray-800 border border-gray-200'}`}>
                       <p className="text-sm">{msg.content}</p>
-                      <p className={`text-xs mt-1 text-right ${
-                        msg.sender === currentUser._id ? 'text-indigo-100' : 'text-gray-500'
-                      }`}>
+                      <p className={`text-xs mt-1 text-right ${msg.sender === currentUser._id ? 'text-indigo-100' : 'text-gray-500'}`}>
                         {msg.timestamp}
                       </p>
                       {msg.sender === currentUser._id && (
@@ -227,37 +221,28 @@ const ChatComponent = ({ currentUser }) => {
           <div className="bg-white px-6 py-4 border-t border-gray-200">
             <div className="flex items-center gap-3">
               <button className="p-2 rounded-full text-gray-500 hover:bg-gray-100">
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                </svg>
-              </button>
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={handleKeyPress}
-                placeholder="Type your message..."
-                className="flex-1 p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
-              />
-              <button
-                onClick={handleSendMessage}
-                disabled={!newMessage.trim()}
-                className={`p-3 rounded-full ${
-                  newMessage.trim() 
-                    ? 'bg-indigo-600 text-white hover:bg-indigo-700' 
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                } transition-colors duration-200`}
-              >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="
+0 0 24 24">
+<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10l4 4-4 4m13-8l4 4-4 4" />
+</svg>
+</button>
+<input
+type="text"
+placeholder="Type a message..."
+className="flex-1 px-4 py-2 text-sm rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+value={newMessage}
+onChange={(e) => setNewMessage(e.target.value)}
+onKeyDown={handleKeyPress}
+/>
+<button className="bg-indigo-500 text-white px-4 py-2 rounded-full" onClick={handleSendMessage} >
+Send
+</button>
+</div>
+</div>
+)}
+</div>
+</div>
+);
 };
 
 export default ChatComponent;

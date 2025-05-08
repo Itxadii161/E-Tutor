@@ -1,5 +1,6 @@
 // src/App.jsx
 import React from "react";
+
 import ScrollToTop from './components/SMALL_components/ScrollToTop';
 // import Navbar from './components/Navbar';
 import ProfessionalNavbar from "./components/ProfessionalNavbar";

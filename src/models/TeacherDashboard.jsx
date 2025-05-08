@@ -21,7 +21,7 @@ const TeacherDashboard = () => {
   return (
     <div className="min-h-screen bg-indigo-50 p-4">
       <TopNavigationBar />
-      {role === "tutor" && <WelcomeMessage />}
+      {/* {role === "tutor" && <WelcomeMessage />} */}
       
       <div className="flex gap-4 mt-4 border-b border-indigo-200">
         {["welcome", "messages", "settings"].map(tab => (

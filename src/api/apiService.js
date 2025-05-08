@@ -1,33 +1,28 @@
 import axios from 'axios';
 
 export const API_BASE_URL = import.meta.env.VITE_BACKEND_URL;
- export const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+export const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 // Generic API request handler
 const apiReq = async (endpoint, method = 'GET', data = null, customConfig = {}) => {
   try {
     const token = localStorage.getItem('authToken');
-    // console.log(token);
-    // console.log("authToken in localStorage:", localStorage.getItem('authToken'));
     const config = {
       method,
       url: `${API_BASE_URL}${endpoint}`,
       headers: {
         Authorization: token ? `Bearer ${token}` : undefined,
         ...(data instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
-        ...(customConfig.headers || {})
+        ...(customConfig.headers || {}),
       },
       data,
-      ...customConfig
+      ...customConfig,
     };
-
 
     const response = await axios(config);
     return response.data;
   } catch (error) {
-    
     console.error('API request failed', error.response?.data || error.message);
-
     throw error;
   }
 };
@@ -49,18 +44,19 @@ const getUserData = async () => {
   return await apiReq('/users/getUser', 'GET');
 };
 
+// Update Profile
 const updateProfile = async (formData) => {
   const token = localStorage.getItem('authToken');
   const config = {
     headers: {
       Authorization: `Bearer ${token}`,
-      'Content-Type': 'multipart/form-data'
+      'Content-Type': 'multipart/form-data',
     },
     transformRequest: (data) => data, // Important for FormData
-
   };
   return await apiReq('/users/update-profile', 'PUT', formData, config);
 };
+
 
 const changePassword = async (formData) => {
   return await apiReq('/users/change-password', 'PUT', formData);
@@ -68,7 +64,7 @@ const changePassword = async (formData) => {
 
 const getUserRole = async (token) => {
   return await apiReq('/users/getUserRole', 'GET', null, {
-    headers: { 'Authorization': `Bearer ${token}` }
+    headers: { 'Authorization': `Bearer ${token}` },
   });
 };
 
@@ -94,14 +90,13 @@ const becomeTutor = async (formData) => {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
-    }
+    },
   };
 
   return await apiReq('/becometutor', 'POST', form, config);
 };
 
 // 💬 Messaging & Hiring
-
 const sendMessage = async (data) => {
   return await apiReq('/messages/send', 'POST', data);
 };
@@ -118,13 +113,12 @@ const getConversationMessages = async (userId1, userId2) => {
 const getUserConversations = async (userId) => {
   try {
     const response = await apiReq(`/messages/conversations/${userId}`, 'GET');
-    return response.data;  // Ensure the response data is returned
+    return response.data; // Ensure the response data is returned
   } catch (error) {
     console.error('Error fetching conversations:', error);
-    throw error;  // Propagate the error
+    throw error; // Propagate the error
   }
 };
-
 
 // ✅ Export All APIs
 export {
@@ -133,11 +127,12 @@ export {
   googleLogin,
   getUserData,
   updateProfile,
+  // updateProfileImage, // Added export for profile image update
   changePassword,
   becomeTutor,
   getUserRole,
   sendMessage,
   hireTutor,
   getConversationMessages,
-  getUserConversations
+  getUserConversations,
 };
