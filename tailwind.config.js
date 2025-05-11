@@ -9,6 +9,7 @@ export default {
       screens: {
         'custom-small': { max: '399px' },
       },
+      
     },
   },
   plugins: [],

@@ -13,7 +13,8 @@ const UserProvider = ({ children }) => {
   const [role, setRole] = useState(() => {
     // You can initialize the role from the stored user or an empty string
     const storedRole = localStorage.getItem("userRole");
-    return storedRole ? storedRole : ""; 
+    return storedRole ? storedRole.toLowerCase() : ""; 
+    
   });
 
   const [loading, setLoading] = useState(true);  // Loading state while fetching user
@@ -49,9 +50,13 @@ const UserProvider = ({ children }) => {
         const res = await getUserRole(token);
         if (res?.user) {
           setUser(res.user);  // Set user to state if fetched successfully
-          setRole(res.user.role);  // Set role to state
+          const normalizedRole = res.user.role?.toLowerCase();
+          setRole(normalizedRole);
+          localStorage.setItem("userRole", normalizedRole);
           localStorage.setItem("user", JSON.stringify(res.user));  // Store user in localStorage
-          localStorage.setItem("userRole", res.user.role);  // Store role in localStorage
+          // setRole(res.user.role);  // Set role to state
+          // localStorage.setItem("userRole", res.user.role);  // Store role in localStorage
+
         } else {
           logout();  // Logout if user role not fetched properly
         }

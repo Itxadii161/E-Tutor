@@ -1,5 +1,4 @@
 import React, { useContext, useState, useEffect } from "react";
-import { useSpring, animated } from "react-spring";
 import { UserContext } from "../context/UserContext";
 
 const WelcomeMessage = () => {
@@ -13,21 +12,10 @@ const WelcomeMessage = () => {
       : `Hello ${user?.firstName},\nready to become a tutor?`;
 
   const [showMessage, setShowMessage] = useState(false);
-  const props = useSpring({
-    from: {
-      opacity: 0,
-      transform: "scale(0.9) translateY(-60px)",
-    },
-    to: {
-      opacity: 1,
-      transform: "scale(1) translateY(0)",
-    },
-    config: { tension: 280, friction: 35 },
-  });
-  
-
   const [textOffset, setTextOffset] = useState(0);
+
   useEffect(() => {
+    setShowMessage(true); // Trigger animation on mount
     const interval = setInterval(() => {
       setTextOffset((prevOffset) => prevOffset + 1.2);
     }, 50);
@@ -36,9 +24,10 @@ const WelcomeMessage = () => {
 
   return (
     <div className="relative w-full">
-      <animated.div
-        style={props}
-        className="flex items-center justify-center bg-gradient-to-r from-blue-500 to-orange-400 text-white px-6 py-12 rounded-3xl shadow-xl w-full h-[28vh] sm:h-[30vh] md:h-[32vh] lg:h-[35vh] xl:h-[36vh] mt-6 mx-auto opacity-95"
+      <div
+        className={`transition-all duration-700 ease-out transform ${
+          showMessage ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 -translate-y-10"
+        } flex items-center justify-center bg-gradient-to-r from-blue-500 to-orange-400 text-white px-6 py-12 rounded-3xl shadow-xl w-full h-[28vh] sm:h-[30vh] md:h-[32vh] lg:h-[35vh] xl:h-[36vh] mt-6 mx-auto opacity-95`}
       >
         <div className="text-center max-w-4xl w-full -mt-4">
           <h2
@@ -48,7 +37,7 @@ const WelcomeMessage = () => {
             {message}
           </h2>
         </div>
-      </animated.div>
+      </div>
 
       {/* Scrolling text */}
       <div className="absolute bottom-4 left-0 right-0 text-center w-full overflow-hidden">

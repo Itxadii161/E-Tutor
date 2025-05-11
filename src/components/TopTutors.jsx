@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import TutorCard from './SMALL_components/TutorCard';
+import TutorCard from '../components/SMALL_components/TutorCard';
 import image1 from '../assets/Top_tutors/Image1.png';
 import image2 from '../assets/Top_tutors/Image2.png';
 import image3 from '../assets/Top_tutors/Image3.png';

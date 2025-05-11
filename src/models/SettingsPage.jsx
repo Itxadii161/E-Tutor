@@ -1,11 +1,21 @@
-import React, { useState, useContext, useEffect } from "react";
-import { UserContext } from "../context/UserContext";
+import React, { useState, useEffect } from "react";
 import { updateProfile } from "../api/apiService";
-import { API_BASE_URL } from '../api/apiService';
+import { Toaster, toast } from "react-hot-toast";
 
-const SettingsPage = () => {
-  const { user, updateUser } = useContext(UserContext);
-  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", bio: "" });
+const SettingsPage = ({ user: initialUser }) => {
+  const [user, setUser] = useState(initialUser || null);
+  const [form, setForm] = useState({
+    firstName: "", lastName: "", email: "", bio: "", dateOfBirth: "",
+    gender: "", phoneNumber: "", highestQualification: "", institutionName: "",
+    graduationYear: "", experienceYears: "", username: ""
+  });
+  const [address, setAddress] = useState({ country: "", state: "", city: "", village: "" });
+  const [availability, setAvailability] = useState({ days: [], timeSlots: [] });
+  const [pastInstitutions, setPastInstitutions] = useState([]);
+  const [subjectsOfExpertise, setSubjectsOfExpertise] = useState([]);
+  const [languagesSpoken, setLanguagesSpoken] = useState([]);
+  const [educationCertificates, setEducationCertificates] = useState([]);
+  const [resume, setResume] = useState(null);
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [success, setSuccess] = useState("");
@@ -14,128 +24,272 @@ const SettingsPage = () => {
   useEffect(() => {
     if (user) {
       setForm({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        email: user.email || "",
-        bio: user.bio || ""
+        firstName: user.firstName || "", lastName: user.lastName || "",
+        email: user.email || "", bio: user.bio || "", username: user.username || "",
+        dateOfBirth: user.dateOfBirth?.slice(0, 10) || "", gender: user.gender || "",
+        phoneNumber: user.phoneNumber || "", highestQualification: user.highestQualification || "",
+        institutionName: user.institutionName || "", graduationYear: user.graduationYear || "",
+        experienceYears: user.experienceYears || ""
       });
-      setPreview(user.image ? `${API_BASE_URL}/uploads/${user.image}` : null);
+      setAddress(user.address || { country: "", state: "", city: "", village: "" });
+      setAvailability(user.availability || { days: [], timeSlots: [] });
+      setPastInstitutions(user.pastInstitutions || []);
+      setSubjectsOfExpertise(user.subjectsOfExpertise || []);
+      setLanguagesSpoken(user.languagesSpoken || []);
+      setPreview(user.image || null);
     }
   }, [user]);
 
   const handleChange = (e) => {
     const { id, value } = e.target;
-    setForm({ ...form, [id]: value });
+    setForm((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleFileChange = (e) => {
+  const handleAddressChange = (e) => {
+    const { id, value } = e.target;
+    setAddress((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleArrayChange = (setter) => (e) => {
+    setter(e.target.value.split(",").map((item) => item.trim()));
+  };
+
+  const handleFileChange = (e, type = "image") => {
     const file = e.target.files[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      return setError("Only image files allowed");
+
+    if (type === "image" && !file.type.startsWith("image/")) {
+      toast.error("Only image files allowed");
+      return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      return setError("Image size must be under 5MB");
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size must be under 10MB");
+      return;
     }
-    setImage(file);
-    setPreview(URL.createObjectURL(file));
+
+    type === "resume" ? setResume(file) : setImage(file);
+    if (type === "image") setPreview(URL.createObjectURL(file));
+  };
+
+  const handleCertificatesChange = (e) => {
+    setEducationCertificates(Array.from(e.target.files));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSuccess("");
+    setError("");
+  
     const formData = new FormData();
-
+  
     Object.entries(form).forEach(([key, value]) => {
-      if (value && value !== user[key]) {
+      if (value && value !== (initialUser?.[key] ?? "")) {
         formData.append(key, value);
       }
     });
-
-    if (image) {
+  
+    if (
+      address &&
+      JSON.stringify(address) !== JSON.stringify(initialUser?.address || {})
+    ) {
+      formData.append("address", JSON.stringify(address));
+    }
+  
+    if (
+      availability &&
+      JSON.stringify(availability) !== JSON.stringify(initialUser?.availability || {})
+    ) {
+      formData.append("availability", JSON.stringify(availability));
+    }
+  
+    if (
+      JSON.stringify(pastInstitutions) !==
+      JSON.stringify(initialUser?.pastInstitutions || [])
+    ) {
+      formData.append("pastInstitutions", JSON.stringify(pastInstitutions));
+    }
+  
+    if (
+      JSON.stringify(subjectsOfExpertise) !==
+      JSON.stringify(initialUser?.subjectsOfExpertise || [])
+    ) {
+      formData.append("subjectsOfExpertise", JSON.stringify(subjectsOfExpertise));
+    }
+  
+    if (
+      JSON.stringify(languagesSpoken) !==
+      JSON.stringify(initialUser?.languagesSpoken || [])
+    ) {
+      formData.append("languagesSpoken", JSON.stringify(languagesSpoken));
+    }
+  
+    if (image && image !== initialUser?.image) {
       formData.append("image", image);
     }
-
+  
+    if (resume && resume !== initialUser?.resumeUrl) {
+      formData.append("resume", resume);
+    }
+  
+    if (educationCertificates.length > 0) {
+      educationCertificates.forEach((file) =>
+        formData.append("educationCertificates", file)
+      );
+    }
+  
     try {
       const response = await updateProfile(formData);
-      if (response?.user) {
-        updateUser(response.user);
-        setForm({ firstName: "", lastName: "", email: "", bio: "" });
-        setImage(null);
-        setPreview(null);
-        setSuccess("Profile updated successfully");
-        setTimeout(() => setSuccess(""), 3000);
-      } else {
-        throw new Error(response.message || "Update failed");
-      }
+      toast.success("Profile updated successfully!");
+      setSuccess("Profile updated successfully!");
+      setUser(response.data);
     } catch (err) {
-      setError(err.message);
-      setTimeout(() => setError(""), 3000);
+      const msg = err.response?.data?.message || err.message || "Update failed";
+      toast.error(msg);
+      setError(msg);
     }
   };
-
+  
   return (
     <div className="max-w-3xl mx-auto p-6 bg-gradient-to-r from-blue-50 via-blue-100 to-teal-100 text-gray-800 shadow-lg rounded-lg mt-10">
+      <Toaster position="top-center" reverseOrder={false} />
       <h2 className="text-3xl font-bold mb-6 text-center text-indigo-900">Edit Profile</h2>
-
       {success && <p className="text-green-500 mb-3">{success}</p>}
       {error && <p className="text-red-500 mb-3">{error}</p>}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4" encType="multipart/form-data">
+        {["firstName", "lastName", "username", "email", "phoneNumber", "bio", "highestQualification", "institutionName"].map((field) => (
+          <input
+            key={field}
+            id={field}
+            placeholder={field.replace(/([A-Z])/g, " $1")}
+            value={form[field]}
+            onChange={handleChange}
+            className="w-full p-3 border border-gray-300 rounded-lg text-gray-900"
+          />
+        ))}
+
         <input
-          id="firstName"
-          placeholder="First Name"
-          value={form.firstName}
+          type="date"
+          id="dateOfBirth"
+          value={form.dateOfBirth}
           onChange={handleChange}
           className="w-full p-3 border border-gray-300 rounded-lg text-gray-900"
-        />
-        <input
-          id="lastName"
-          placeholder="Last Name"
-          value={form.lastName}
-          onChange={handleChange}
-          className="w-full p-3 border border-gray-300 rounded-lg text-gray-900"
-        />
-        <input
-          id="email"
-          placeholder="Email"
-          type="email"
-          value={form.email}
-          onChange={handleChange}
-          className="w-full p-3 border border-gray-300 rounded-lg text-gray-900"
-        />
-        <textarea
-          id="bio"
-          placeholder="Bio"
-          value={form.bio}
-          onChange={handleChange}
-          className="w-full p-3 border border-gray-300 rounded-lg text-gray-900"
-          maxLength={500}
         />
 
-        <div className="flex flex-col items-center space-y-4">
+        <select
+          id="gender"
+          value={form.gender}
+          onChange={handleChange}
+          className="w-full p-3 border border-gray-300 rounded-lg text-gray-900"
+        >
+          <option value="">Select Gender</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
+
+        {["country", "state", "city", "village"].map((field) => (
+          <input
+            key={field}
+            id={field}
+            placeholder={field}
+            value={address[field]}
+            onChange={handleAddressChange}
+            className="w-full p-3 border border-gray-300 rounded-lg text-gray-900"
+          />
+        ))}
+
+        <textarea
+          placeholder="Past Institutions (comma separated)"
+          onChange={handleArrayChange(setPastInstitutions)}
+          defaultValue={pastInstitutions.join(", ")}
+          className="w-full p-3 border border-gray-300 rounded-lg text-gray-900"
+        />
+
+        <textarea
+          placeholder="Subjects of Expertise (comma separated)"
+          onChange={handleArrayChange(setSubjectsOfExpertise)}
+          defaultValue={subjectsOfExpertise.join(", ")}
+          className="w-full p-3 border border-gray-300 rounded-lg text-gray-900"
+        />
+
+        <textarea
+          placeholder="Languages Spoken (comma separated)"
+          onChange={handleArrayChange(setLanguagesSpoken)}
+          defaultValue={languagesSpoken.join(", ")}
+          className="w-full p-3 border border-gray-300 rounded-lg text-gray-900"
+        />
+
+        <input
+          placeholder="Available Days (comma separated)"
+          onChange={handleArrayChange((val) => setAvailability((prev) => ({ ...prev, days: val })))}
+          defaultValue={availability.days?.join(", ")}
+          className="w-full p-3 border border-gray-300 rounded-lg text-gray-900"
+        />
+
+        <input
+          placeholder="Available Time Slots (comma separated)"
+          onChange={handleArrayChange((val) => setAvailability((prev) => ({ ...prev, timeSlots: val })))}
+          defaultValue={availability.timeSlots?.join(", ")}
+          className="w-full p-3 border border-gray-300 rounded-lg text-gray-900"
+        />
+
+        <input
+          type="number"
+          id="graduationYear"
+          placeholder="Graduation Year"
+          value={form.graduationYear}
+          onChange={handleChange}
+          className="w-full p-3 border border-gray-300 rounded-lg text-gray-900"
+        />
+
+        <input
+          type="number"
+          id="experienceYears"
+          placeholder="Experience Years"
+          value={form.experienceYears}
+          onChange={handleChange}
+          className="w-full p-3 border border-gray-300 rounded-lg text-gray-900"
+        />
+
+        <div className="flex flex-col space-y-4">
           <label className="text-lg text-indigo-600">Profile Image</label>
           {preview ? (
-            <img
-              src={preview}
-              alt="Preview"
-              className="w-28 h-28 rounded-full object-cover mb-3 border-4 border-white shadow-lg"
-            />
+            <img src={preview} alt="Preview" className="w-28 h-28 rounded-full object-cover mb-3" />
           ) : (
-            <div className="w-28 h-28 rounded-full bg-gray-200 text-center flex items-center justify-center text-xl font-bold text-gray-600 mb-3">
-              {user?.firstName?.[0] || user?.lastName?.[0] || "U"}
+            <div className="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center">
+              {form.firstName?.[0] || "U"}
             </div>
           )}
           <input
             type="file"
             accept="image/*"
-            onChange={handleFileChange}
-            className="p-2 border border-indigo-600 rounded-lg text-indigo-600 cursor-pointer hover:bg-indigo-50"
+            onChange={(e) => handleFileChange(e, "image")}
+            className="p-2 border border-gray-300 rounded-lg"
+          />
+
+          <label className="text-lg text-indigo-600">Resume</label>
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx"
+            onChange={(e) => handleFileChange(e, "resume")}
+            className="p-2 border border-gray-300 rounded-lg"
+          />
+
+          <label className="text-lg text-indigo-600">Certificates</label>
+          <input
+            type="file"
+            multiple
+            accept="image/*,.pdf"
+            onChange={handleCertificatesChange}
+            className="p-2 border border-gray-300 rounded-lg"
           />
         </div>
 
         <button
           type="submit"
-          className="bg-indigo-500 text-white px-6 py-3 rounded-full hover:bg-indigo-600 transition-all duration-300"
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-lg mt-4"
         >
           Save Changes
         </button>

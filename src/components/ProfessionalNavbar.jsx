@@ -12,7 +12,7 @@ const ProfessionalNavbar = () => {
 
   const navItems = [
     { id: '1', name: 'Home', link: '/', icon: <FiHome className="mr-2" /> },
-    { id: '2', name: 'Find Tutors', link: '/tutors', icon: <FiUsers className="mr-2" /> },
+    { id: '2', name: 'Find Tutors', link: '/find-tutors', icon: <FiUsers className="mr-2" /> },
     { id: '3', name: 'Become Tutor', link: '/become-tutor-form', icon: <FiUser className="mr-2" /> },
     { id: '4', name: 'Courses', link: '/courses', icon: <FiBookOpen className="mr-2" /> },
     { id: '5', name: 'About', link: '/about', icon: <FiInfo className="mr-2" /> },

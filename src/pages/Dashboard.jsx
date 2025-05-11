@@ -5,7 +5,7 @@ import { UserContext } from "../context/UserContext";
 const Dashboard = () => {
   const { role } = useContext(UserContext);
 
-  return role === "teacher" ? <TeacherDashboard /> : <StudentDashboard />;
+  return role === "Teacher" ? <TeacherDashboard /> : <StudentDashboard />;
 };
 
 export default Dashboard;
