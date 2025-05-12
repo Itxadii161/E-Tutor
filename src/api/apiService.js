@@ -89,34 +89,6 @@ const becomeTutor = async (formData) => {
   return await apiReq('/tutor/becometutor', 'POST', formData, config);
 };
 
-// // 🎓 Tutor-related
-// const becomeTutor = async (formData) => {
-//   const form = new FormData();
-//   const token = localStorage.getItem('authToken');
-
-//   if (!token) {
-//     alert("No auth token found. Please log in.");
-//     throw new Error("Missing token");
-//   }
-
-//   for (const key in formData) {
-//     if (Array.isArray(formData[key])) {
-//       formData[key].forEach(file => form.append(key, file));
-//     } else if (formData[key] !== null && formData[key] !== undefined) {
-//       form.append(key, formData[key]);
-//     }
-//   }
-
-//   const config = {
-//     headers: {
-//       'Authorization': `Bearer ${token}`,
-//       'Content-Type': 'application/json',
-//     },
-//   };
-
-//   return await apiReq('/tutor/becometutor', 'POST', form, config);
-// };
-
 // 💬 Messaging & Hiring
 const sendMessage = async (data) => {
   return await apiReq('/messages/send', 'POST', data);
@@ -164,27 +136,16 @@ const getAllTutors = async (filters = {}) => {
 
 /**
  * Get a specific tutor by ID
- /**
- * Get tutor details by ID
  * @param {string} tutorId - ID of the tutor
- * @param {string} role - ID of the tutor
  */
- const getTutorById = async (tutorId) => {
+const getTutorById = async (tutorId) => {
+  if (!tutorId) {
+    throw new Error('Tutor ID is required');
+  }
+
   try {
-    if (!tutorId) throw new Error('Tutor ID is required');
-
     const response = await apiReq(`/tutor/${tutorId}`);
-    const tutor = response?.tutor;
-
-    const role = tutor?.role?.toLowerCase();
-    if (!role) {
-      throw new Error('No role present');
-    }
-    if (role !== 'tutor') {
-      throw new Error('Requested user is not a tutor');
-    }
-
-    return tutor;
+    return response?.tutor;
   } catch (error) {
     console.error(`Error fetching tutor ${tutorId}:`, error);
     throw error;
@@ -197,13 +158,15 @@ const getAllTutors = async (filters = {}) => {
  * @param {string} tutorId - ID of the tutor to rate
  * @param {number} ratingValue - Rating value (1-5)
  */
-const rateTutor = async (tutorId, ratingValue) => {
-  if (!tutorId) throw new Error('Tutor ID is required');
-  if (ratingValue < 1 || ratingValue > 5) throw new Error('Rating must be between 1 and 5');
-
-  return await apiReq('/tutor/rate', 'POST', { tutorId, rating: ratingValue });
+const rateTutor = async (tutorId, rating, review = "") => {
+  const user = await getUserData(); // Get the current user data here
+  return await apiReq('/tutor/rate', 'POST', {
+    tutorId,
+    userId: user._id, // Pass the user._id here directly
+    rating,
+    review
+  });
 };
-
 
 /**
  * Hire a tutor
@@ -229,25 +192,6 @@ const verifyTutorStatus = async (userId) => {
   }
 };
 
-/**
- * Check a user's rating for a tutor
- * @param {string} tutorId - Tutor ID
- * @param {string} userId - User ID
- */
-const checkUserRating = async (tutorId, userId) => {
-  try {
-    return await apiReq('/tutor/rating-check', 'GET', null, {
-      params: { tutorId, userId }
-    });
-  } catch (error) {
-    console.error("Error checking user rating:", error);
-    return { rating: 0, exists: false };
-  }
-};
-
-
-
-
 // ✅ Export All APIs
 export {
   // Tutor functions
@@ -257,7 +201,6 @@ export {
   rateTutor,
   hireTutor,
   verifyTutorStatus,
-  checkUserRating,
   
   // Auth functions
   signupUser,

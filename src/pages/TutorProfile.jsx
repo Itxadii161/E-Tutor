@@ -1,54 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTutorById, rateTutor, checkUserRating, hireTutor } from '../api/apiService';
-import StarRating from '../components/SMALL_components/StarRating';
-import { FiArrowLeft } from 'react-icons/fi'; // For back button icon
+import { getTutorById, hireTutor } from '../api/apiService';
+import { FiArrowLeft } from 'react-icons/fi';
 
-const TutorProfile = ({ currentUserId }) => {
-  const { tutorId } = useParams();
+const TutorProfile = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
   const [tutor, setTutor] = useState(null);
-  const [ratingsCount, setRatingsCount] = useState(0);
-  const [userRating, setUserRating] = useState(0);
-  const [avgRating, setAvgRating] = useState(0);
-  const [submissionMessage, setSubmissionMessage] = useState('');
 
   useEffect(() => {
     const fetchTutor = async () => {
-      const data = await getTutorById(tutorId);
-      setAvgRating(parseFloat(data.avgRating) || 0);
-      setRatingsCount(parseInt(data.totalRatings) || 0);
-
-      if (currentUserId) {
-        const ratingData = await checkUserRating(tutorId, currentUserId);
-        setUserRating(parseInt(ratingData.rating) || 0);
+      try {
+        const data = await getTutorById(id);
+        setTutor(data);
+      } catch (err) {
+        console.error('Failed to fetch tutor:', err);
       }
-
-      setTutor(data);
     };
-
     fetchTutor();
-  }, [tutorId, currentUserId]);
-
-  const handleRate = async (rating) => {
-    setUserRating(rating);
-    try {
-      const response = await rateTutor(tutorId, rating);
-      if (response.success) {
-        setUserRating(rating);
-        setAvgRating(parseFloat(response.tutor.avgRating));
-        setRatingsCount(parseInt(response.tutor.totalRatings));
-        setSubmissionMessage('Rating submitted successfully!');
-      }
-    } catch (error) {
-      console.error('Rating failed:', error);
-      setSubmissionMessage('Failed to submit rating. Please try again.');
-    }
-  };
+  }, [id]);
 
   const handleHire = async () => {
     try {
-      await hireTutor(tutorId);
+      await hireTutor(tutor._id);
       alert('Hiring request sent successfully!');
     } catch (err) {
       console.error('Hiring failed', err);
@@ -57,88 +31,104 @@ const TutorProfile = ({ currentUserId }) => {
   };
 
   if (!tutor) {
-    return (
-      <div className="flex justify-center items-center min-h-screen text-gray-600">
-        Loading tutor profile...
-      </div>
-    );
+    return <div className="text-center py-20 text-gray-500">Loading Tutor Profile...</div>;
   }
 
+  // Check if availability is an object with days and timeSlots
+  const availabilityText = tutor.availability
+    ? Array.isArray(tutor.availability.days)
+      ? `Available Days: ${tutor.availability.days.join(', ')}`
+      : 'Days not specified'
+    : 'Availability not specified';
+
+  const timeSlotsText = tutor.availability && Array.isArray(tutor.availability.timeSlots)
+    ? `Available Time Slots: ${tutor.availability.timeSlots.join(', ')}`
+    : 'Time Slots not specified';
+
   return (
-    <div className="max-w-5xl mx-auto p-8 bg-white shadow-xl rounded-lg">
-      {/* Back Button */}
-      <button onClick={() => navigate(-1)} className="flex items-center text-blue-600 hover:text-blue-800 mb-6 text-lg font-medium">
-        <FiArrowLeft className="mr-3 text-xl" />
-        Back to Tutors
+    <div className="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-lg">
+      <button onClick={() => navigate(-1)} className="flex items-center text-blue-600 hover:text-blue-800 mb-4">
+        <FiArrowLeft className="mr-2" /> Back to Tutors
       </button>
 
-      <div className="flex flex-col lg:flex-row items-center space-y-6 lg:space-y-0 lg:space-x-8">
-        {/* Tutor Image */}
+      <div className="flex flex-col lg:flex-row items-start gap-8">
+        {/* Image */}
         <img
           src={tutor.image || '/default-avatar.png'}
           alt="Tutor"
-          className="w-48 h-48 rounded-full object-cover border-4 border-gray-300 shadow-lg"
+          className="w-40 h-40 rounded-full border-4 object-cover"
         />
-        
-        {/* Tutor Info */}
-        <div className="text-center lg:text-left">
-          <h2 className="text-4xl font-semibold text-gray-900 mb-2">{tutor.fullName}</h2>
-          <p className="text-lg text-gray-600">Degree:{tutor.highestQualification}</p>
-          <p className="text-gray-500 text-sm">Department:{tutor.subjectsOfExpertise?.join(', ')}</p>
 
-          {/* Star Rating */}
-          <div className="mt-4">
-            <StarRating rating={userRating} onRate={handleRate} />
-            <div className="mt-2 text-sm text-gray-600">
-              {ratingsCount > 0 ? (
-                <>
-                  <span className="font-semibold text-lg">{avgRating.toFixed(1)}</span>
-                  <span className="text-gray-500"> ({ratingsCount} {ratingsCount === 1 ? 'rating' : 'ratings'})</span>
-                </>
-              ) : (
-                <span className="text-gray-400 italic">No ratings yet</span>
-              )}
-            </div>
+        {/* Basic Info */}
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold text-gray-900 mb-1">{tutor.fullName}</h1>
+          <p className="text-gray-600 mb-2 first-letter:capitalize ">Gender: {tutor.gender}</p>
+          <p className="text-gray-600 mb-2">Qualification: {tutor.highestQualification}</p>
+          <p className="text-sm text-gray-500">Subjects: {tutor.subjectsOfExpertise?.join(', ')}</p>
+          <p className="text-sm text-gray-500">Hourly Rate: ₹{tutor.hourlyRate}</p>
+          <p className="text-sm text-gray-500">Location: {`${tutor.address?.country || ''},${tutor.address?.state || ''}, ${tutor.address?.city || ''},${tutor.address?.village || ''}` || 'N/A'}</p>
+        </div>
+      </div>
+
+      <div className="mt-8 grid gap-6">
+        <div>
+          <h2 className="text-xl font-semibold">About</h2>
+          <p className="text-gray-700">{tutor.bio || 'No bio provided'}</p>
+        </div>
+        <div>
+        <h2 className="text-xl font-semibold">Experience</h2>
+        <p className="text-gray-700">{tutor.experienceYears} years</p>
+        </div>
+        <div>
+          <h2 className="text-xl font-semibold">Institutions</h2>
+          <p className="text-gray-700 italic">{tutor.pastInstitutions}</p>
+        </div>
+
+        {/* Availability Section */}
+        <div>
+          <h2 className="text-xl font-semibold">Availability</h2>
+          <p className="text-gray-700">{availabilityText}</p>
+          <p className="text-gray-700">{timeSlotsText}</p>
+        </div>
+
+        {/* Documents Section */}
+        <div>
+          <h2 className="text-xl font-semibold">Documents</h2>
+          <div className="flex flex-col space-y-2 mt-2">
+            {tutor.resumeUrl && (
+              <a href={tutor.resumeUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                📄 View Resume
+              </a>
+            )}
+
+            {Array.isArray(tutor.educationCertificates) && tutor.educationCertificates.length > 0 && (
+              tutor.educationCertificates.map((cert, i) => (
+                <a key={i} href={cert} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                  📘 View Certificate {i + 1}
+                </a>
+              ))
+            )}
+
+            {tutor.idProofUrl && (
+              <a href={tutor.idProofUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                🪪 View ID Proof
+              </a>
+            )}
           </div>
-
-          {/* Submission Message */}
-          {submissionMessage && (
-            <div className="mt-2 text-sm text-green-600">
-              {submissionMessage}
-            </div>
-          )}
         </div>
       </div>
 
-      {/* About, Experience, and Location Sections */}
-      <div className="mt-8 space-y-6">
-        <div>
-          <h3 className="font-semibold text-xl text-gray-800">About</h3>
-          <p className="text-gray-700">{tutor.bio || 'No bio available'}</p>
-        </div>
-
-        <div>
-          <h3 className="font-semibold text-xl text-gray-800">Experience</h3>
-          <p className="text-gray-700">{tutor.experience || 'No experience provided'}</p>
-        </div>
-
-        <div>
-          <h3 className="font-semibold text-xl text-gray-800">Location</h3>
-          <p className="text-gray-700">{tutor.city}, {tutor.state}</p>
-        </div>
-      </div>
-
-      {/* Hire and Message Buttons */}
-      <div className="flex justify-center lg:justify-start space-x-6 mt-8">
+      {/* Actions */}
+      <div className="mt-8 flex gap-4">
         <button
           onClick={handleHire}
-          className="bg-green-600 text-white text-lg px-6 py-3 rounded-lg shadow-md hover:bg-green-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="bg-green-600 text-white px-6 py-2 rounded-lg shadow hover:bg-green-700"
         >
           Hire Tutor
         </button>
         <button
           onClick={() => navigate(`/chat/${tutor._id}`)}
-          className="bg-blue-600 text-white text-lg px-6 py-3 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700"
         >
           Message
         </button>

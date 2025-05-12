@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import TutorCard from '../components/SMALL_components/TutorCard';
 import image1 from '../assets/Top_tutors/Image1.png';
 import image2 from '../assets/Top_tutors/Image2.png';
 import image3 from '../assets/Top_tutors/Image3.png';
 import image4 from '../assets/Top_tutors/Image4.png';
 import image5 from '../assets/Top_tutors/Image5.png';
-
+import {UserContext} from '../context/UserContext'
 const TopTutors = () => {
     const [tutors, setTutors] = useState([]);
-
+    const {user, role} = useContext(UserContext)
     useEffect(() => {
         const fetchTutors = async () => {
             const topTutors = [
@@ -38,9 +38,22 @@ const TopTutors = () => {
                 
                 <footer className='text-gray-600 text-center mt-10 text-sm sm:text-base'>
                     Thousands of students looking for an instructor. Start teaching & earning now!{' '}
-                    <a href="#" className="text-[#FF6636] hover:underline font-medium">
+                   
+                    {!user ? (
+                    <a href="/login" className="text-[#FF6636] hover:underline font-medium">
+                        Login First
+                    </a>
+                    ) : role !== 'tutor' ? (
+                    <a href="/become-tutor-form" className="text-[#FF6636] hover:underline font-medium">
                         Become an Instructor
                     </a>
+                    ) : (
+                    <a href="/dashboard" className="text-[#FF6636] hover:underline font-medium">
+                        Go to Dashboard
+                    </a>
+                    )}
+
+                    
                 </footer>
             </div>
         </section>

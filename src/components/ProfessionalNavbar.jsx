@@ -1,22 +1,28 @@
 import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
-import { FiSearch, FiMenu, FiX, FiUser, FiLogOut, FiHome, FiUsers, FiBookOpen, FiInfo } from 'react-icons/fi';
+import { FiSearch, FiMenu, FiX, FiUser, FiLogOut, FiHome, FiUsers, FiRepeat, FiInfo } from 'react-icons/fi';
 import logo from '../assets/Home-page-images/logoImage.png';
 
 const ProfessionalNavbar = () => {
-  const { user, logout } = useContext(UserContext);
+  const { user, logout, role } = useContext(UserContext);
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const navItems = [
     { id: '1', name: 'Home', link: '/', icon: <FiHome className="mr-2" /> },
-    { id: '2', name: 'Find Tutors', link: '/find-tutors', icon: <FiUsers className="mr-2" /> },
-    { id: '3', name: 'Become Tutor', link: '/become-tutor-form', icon: <FiUser className="mr-2" /> },
-    { id: '4', name: 'Courses', link: '/courses', icon: <FiBookOpen className="mr-2" /> },
+    ...(user ?
+      [{ id: '2', name: 'Find Tutors', link: '/find-tutors', icon: <FiUsers className="mr-2" />}]
+      :[] ),
+    ...(user && role !== 'tutor'
+      ? [{ id: '3', name: 'Become Tutor', link: '/become-tutor-form', icon: <FiUser className="mr-2" /> }]
+      : []),
+    { id: '4', name: 'How It Works', link: '/how-it-works', icon: <FiRepeat className="mr-2" /> },
     { id: '5', name: 'About', link: '/about', icon: <FiInfo className="mr-2" /> },
   ];
+  
+  
 
   const handleSearch = (e) => {
     e.preventDefault();

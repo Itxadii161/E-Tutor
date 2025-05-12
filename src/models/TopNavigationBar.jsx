@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUserData } from "../api/apiService"; // Make sure this path is correct
+import { UserContext } from "../context/UserContext";
 
 const TopNavigationBar = () => {
+  const { logout } = useContext(UserContext);
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [role, setRole] = useState("");
@@ -27,8 +29,8 @@ const TopNavigationBar = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    navigate("/login");
+    logout()
+    // navigate("/");
   };
 
   useEffect(() => {
