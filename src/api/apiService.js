@@ -82,31 +82,11 @@ const becomeTutor = async (formData) => {
   const config = {
     headers: {
       'Authorization': `Bearer ${token}`,
-      // 'Content-Type': 'multipart/form-data',
+      // 'Content-Type': 'multipart/form-data', // commented out is okay, axios sets it automatically for FormData
     },
   };
 
-  return await apiReq('/tutor/becometutor', 'POST', formData, config);
-};
-
-// 💬 Messaging & Hiring
-const sendMessage = async (data) => {
-  return await apiReq('/messages/send', 'POST', data);
-};
-
-const getConversationMessages = async (userId1, userId2) => {
-  return await apiReq(`/messages/${userId1}/${userId2}`, 'GET');
-};
-
-// Correct API request method for getting conversations
-const getUserConversations = async (userId) => {
-  try {
-    const response = await apiReq(`/messages/conversations/${userId}`, 'GET');
-    return response.data; // Ensure the response data is returned
-  } catch (error) {
-    console.error('Error fetching conversations:', error);
-    throw error; // Propagate the error
-  }
+  return await apiReq('/tutor/become-tutor', 'POST', formData, config);
 };
 
 // 📚 Tutor Discovery & Interaction
@@ -168,15 +148,6 @@ const rateTutor = async (tutorId, rating, review = "") => {
   });
 };
 
-/**
- * Hire a tutor
- * @param {string} tutorId - ID of the tutor to hire
- * @param {string} message - Optional message to the tutor
- */
-const hireTutor = async (tutorId, message = '') => {
-  if (!tutorId) throw new Error('Tutor ID is required');
-  return await apiReq('/tutor/hire', 'POST', { tutorId, message });
-};
 
 /**
  * Check if a user is a tutor
@@ -192,14 +163,100 @@ const verifyTutorStatus = async (userId) => {
   }
 };
 
-// ✅ Export All APIs
+// 💬 Chat APIs
+ const createOrGetConversation = async (otherUserId) => {
+  return await apiReq('/chat/conversation', 'POST', { otherUserId });
+};
+ const getUserConversations = async () => {
+  return await apiReq('/chat/conversations');
+};
+
+ const getMessages = async (conversationId) => {
+  return await apiReq(`/chat/messages/${conversationId}`);
+};
+
+ const sendMessage = async (conversationId, text) => {
+  return await apiReq('/chat/messages', 'POST', { conversationId, text });
+};
+
+
+// Hiring related functions
+const sendHireRequest = async (tutorId) => {
+  return await apiReq('/hire/request', 'POST', { tutorId });
+};
+
+const checkHireStatus = async (tutorId) => {
+  return await apiReq(`/hire/status/${tutorId}`, 'GET');
+};
+
+const cancelHireRequest = async (tutorId) => {
+  return await apiReq('/hire/cancel', 'POST', { tutorId });
+};
+
+const acceptHireRequest = async (studentId) => {
+  return await apiReq('/hire/accept', 'POST', { studentId });
+};
+
+const rejectHireRequest = async (studentId) => {
+  return await apiReq('/hire/reject', 'POST', { studentId });
+};
+// Notification APIs
+const getUserNotifications = async () => {
+  return await apiReq('/hire/notifications', 'GET');
+};
+const getTutorHireRequests = async () => {
+  return await apiReq('/hire/requests', 'GET');
+};
+
+
+
+export const getAllUsers = async (role = null) => {
+  const params = role ? { role } : {};
+  const response = await apiReq('/admin/users', 'GET', null, { params });
+  return response;
+};
+
+export const getUserDetails = async (userId) => {
+  const response = await apiReq(`/admin/users/${userId}` ,'GET',);
+  return response.data;
+};
+
+export const deleteUser = async (userId) => {
+  const response = await apiReq(`/admin/users/${userId}` , 'DELETE');
+  return response.data;
+};
+
+export const getPendingTutors = async () => {
+  const response = await apiReq('/admin/pending-tutors', 'GET');
+  return response
+};
+
+export const processTutorRequest = async (userId, action) => {
+  const response = await apiReq(`/admin/tutor-requests/${userId}`, 'PUT' ,{ action });
+  return response.data;
+};
+
+// Become Tutor function
+// export const becomeTutor = async (formData) => {
+//   const response = await api.put('/users/become-tutor', formData);
+//   return response.data;
+// };
+
+// Add these to your exports at the bottom
 export {
+  getUserNotifications,
+  sendHireRequest,
+  checkHireStatus,
+  cancelHireRequest,
+  acceptHireRequest,
+  rejectHireRequest,
+  getTutorHireRequests,
+
   // Tutor functions
   becomeTutor,
   getAllTutors,
   getTutorById,
   rateTutor,
-  hireTutor,
   verifyTutorStatus,
   
   // Auth functions
@@ -211,8 +268,9 @@ export {
   changePassword,
   getUserRole,
   
-  // Messaging functions
+  getMessages,
+  createOrGetConversation,
   sendMessage,
-  getConversationMessages,
   getUserConversations
+
 };

@@ -1,300 +1,356 @@
-import React, { useState, useContext, useRef, useEffect } from "react";
-import { becomeTutor, getUserRole } from "../api/apiService";
-import { UserContext } from "../context/UserContext";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { Alert } from 'react-bootstrap';
+import { becomeTutor } from '../api/apiService';
+import { useAuth } from '../context/UserContext';
 
 const BecomeTutorForm = () => {
-  const navigate = useNavigate();
-  const inputRefs = useRef([]);
-  const [currentFieldIndex, setCurrentFieldIndex] = useState(0);
-
+  const { user, updateUser } = useAuth();
   const [formData, setFormData] = useState({
-    fullName: "",
-    dateOfBirth: "",
-    gender: "male",
-    phoneNumber: "",
-    city: "",
-    country: "",
-    highestQualification: "",
-    institutionName: "",
-    graduationYear: "",
-    subjectsOfExpertise: "",
-    experienceYears: "",
-    pastInstitutions: "",
-    certifications: "",
-    availability: "",
-    resumeFile: null,
-    educationCertificates: [],
+    fullName: '',
+    dateOfBirth: '',
+    gender: '',
+    phoneNumber: '',
+    city: '',
+    country: '',
+    highestQualification: '',
+    institutionName: '',
+    graduationYear: '',
+    subjectsOfExpertise: '',
+    experienceYears: '',
+    pastInstitutions: '',
+    certifications: '',
+    availability: JSON.stringify({ days: [], timeSlots: [] }),
+    hourlyRate: '',
   });
 
+  const [resumeFile, setResumeFile] = useState(null);
+  const [idProofFile, setIdProofFile] = useState(null);
+  const [educationFiles, setEducationFiles] = useState([]);
+
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ text: "", type: "" });
-  const { setRole } = useContext(UserContext);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [status, setStatus] = useState('idle'); // 'idle', 'pending', 'approved'
 
   useEffect(() => {
-    if (inputRefs.current[currentFieldIndex]) {
-      inputRefs.current[currentFieldIndex].focus();
-    }
-  }, [currentFieldIndex]);
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: user.fullName || '',
+        dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split('T')[0] : '', // format date
+        gender: user.gender.toLowerCase() || '',
+        phoneNumber: user.phoneNumber || '',
+        city: user.address?.city || '',
+        country: user.address?.country || '',
+        highestQualification: user.highestQualification || '',
+        institutionName: user.institutionName || '',
+        graduationYear: user.graduationYear || '',
+        subjectsOfExpertise: user.subjectsOfExpertise?.join(', ') || '',
+        experienceYears: user.experienceYears || '',
+        pastInstitutions: user.pastInstitutions?.join(', ') || '',
+        certifications: user.certifications?.join(', ') || '',
+        hourlyRate: user.hourlyRate || '',
+        availability: JSON.stringify(user.availability || { days: [], timeSlots: [] }),
+      }));
 
-  const handleKeyDown = (e, index) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const nextIndex = Math.min(index + 1, inputRefs.current.length - 1);
-      setCurrentFieldIndex(nextIndex);
+      if (user.role === 'Pending-Tutor') setStatus('pending');
+      else if (user.role === 'Tutor') setStatus('approved');
     }
-  };
+  }, [user]);
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === "educationCertificates") {
-      setFormData({ ...formData, [name]: Array.from(files) });
-    } else if (name === "resumeFile") {
-      setFormData({ ...formData, [name]: files[0] });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    if (name === 'resumeUrl') setResumeFile(files[0]);
+    else if (name === 'idProofUrl') setIdProofFile(files[0]);
+    else if (name === 'educationCertificates') setEducationFiles(Array.from(files));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage({ text: "", type: "" });
-
-    if (!formData.fullName || !formData.resumeFile || formData.educationCertificates.length === 0) {
-      setMessage({ text: "Please fill all required fields", type: "error" });
-      setLoading(false);
-      return;
-    }
+    setError('');
+    setSuccess('');
 
     try {
-      const formDataToSubmit = new FormData();
-      formDataToSubmit.append("resume", formData.resumeFile);
-      formData.educationCertificates.forEach((file, index) => {
-        formDataToSubmit.append(`educationCertificates[${index}]`, file);
+      const data = new FormData();
+
+      // Append all text fields
+      Object.entries(formData).forEach(([key, val]) => {
+        data.append(key, val);
       });
 
-      const uploadResponse = await uploadFiles(formDataToSubmit);
-      const updatedFormData = {
-        ...formData,
-        resumeUrl: uploadResponse.resumeUrl,
-        educationCertificates: uploadResponse.educationCertificates,
-      };
-
-      await becomeTutor(updatedFormData);
-      setMessage({ text: "Application submitted successfully!", type: "success" });
-
-      const token = localStorage.getItem("authToken");
-      if (token) {
-        const roleRes = await getUserRole(token);
-        if (roleRes?.role) setRole(roleRes.role);
-      }
-    } catch (error) {
-      console.error("Submit error:", error);
-      setMessage({
-        text:
-          error?.response?.data?.message ||
-          error?.response?.data?.error ||
-          "Submission failed. Please try again.",
-        type: "error",
+      // Append files
+      if (resumeFile) data.append('resumeUrl', resumeFile);
+      if (idProofFile) data.append('idProofUrl', idProofFile);
+      educationFiles.forEach(file => {
+        data.append('educationCertificates', file);
       });
+
+      const response = await becomeTutor(data);
+      setSuccess(response.message);
+      setStatus('pending');
+
+      if (response.user) updateUser(response.user);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to submit tutor application');
     } finally {
       setLoading(false);
     }
   };
 
-  const uploadFiles = async (formData) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          resumeUrl: "https://example.com/resume-file-url",
-          educationCertificates: [
-            "https://example.com/certificate1-url",
-            "https://example.com/certificate2-url",
-          ],
-        });
-      }, 2000);
-    });
-  };
+  if (status === 'approved') {
+    return (
+      <Alert variant="success" className="mt-4 max-w-4xl mx-auto p-6 rounded-lg shadow-md">
+        <Alert.Heading>Your tutor request has been approved!</Alert.Heading>
+        <p>You are now a tutor on our platform. You can start offering your tutoring services.</p>
+      </Alert>
+    );
+  }
 
-  const inputFields = [
-    { name: "fullName", placeholder: "Full Name *", required: true },
-    { name: "dateOfBirth", type: "date", placeholder: "Date of Birth" },
-    {
-      name: "gender",
-      type: "select",
-      options: ["male", "female", "other"],
-      placeholder: "Gender",
-    },
-    { name: "phoneNumber", placeholder: "Phone Number", type: "tel" },
-    { name: "city", placeholder: "City" },
-    { name: "country", placeholder: "Country" },
-    { name: "highestQualification", placeholder: "Highest Qualification *", required: true },
-    { name: "institutionName", placeholder: "Institution Name *", required: true },
-    {
-      name: "graduationYear",
-      type: "number",
-      placeholder: "Graduation Year",
-      min: 1900,
-      max: new Date().getFullYear(),
-    },
-    { name: "subjectsOfExpertise", placeholder: "Subjects (comma separated) *", required: true },
-    { name: "experienceYears", type: "number", placeholder: "Experience (years)", min: 0 },
-    { name: "pastInstitutions", placeholder: "Past Institutions (comma separated)" },
-    { name: "certifications", placeholder: "Certifications (comma separated)" },
-    { name: "availability", placeholder: "Availability (e.g., Mon-Fri 9am-5pm)" },
-  ];
+  if (status === 'pending') {
+    return (
+      <Alert variant="warning" className="mt-4 max-w-4xl mx-auto p-6 rounded-lg shadow-md">
+        <Alert.Heading>Your tutor application is pending review</Alert.Heading>
+        <p>Your application has been submitted and is currently under review by our admin team.</p>
+      </Alert>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="md:flex">
-          <div className="md:block md:w-1/3 bg-gradient-to-b from-pink-600 to-purple-600 p-8 flex flex-col justify-center">
-            <div className="text-white">
-              <h1 className="text-3xl font-bold mb-4">Share Your Knowledge</h1>
-              <p className="mb-6">
-                Join our community of expert educators and inspire the next generation.
-              </p>
-              <ul className="space-y-3">
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Flexible teaching hours
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Competitive earnings
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Global student reach
-                </li>
-              </ul>
-            </div>
-          </div>
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md space-y-6"
+      style={{ fontFamily: 'Arial, sans-serif' }}
+    >
+      <h2 className="text-3xl font-semibold mb-6 text-gray-800">Become a Tutor</h2>
 
-          <div className="md:w-2/3 p-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">Become a Tutor</h2>
-            <p className="text-gray-600 mb-8">Fill out the form to start your teaching journey</p>
+      {/* Personal Info */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <input
+          type="text"
+          name="fullName"
+          placeholder="Full Name"
+          value={formData.fullName}
+          onChange={handleChange}
+          required
+          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="date"
+          name="dateOfBirth"
+          value={formData.dateOfBirth}
+          onChange={handleChange}
+          required
+          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <select
+          name="gender"
+          value={formData.gender}
+          onChange={handleChange}
+          required
+          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">Select Gender</option>
+          <option>Male</option>
+          <option>Female</option>
+          <option>Other</option>
+        </select>
+        <input
+          type="tel"
+          name="phoneNumber"
+          placeholder="Phone Number"
+          value={formData.phoneNumber}
+          onChange={handleChange}
+          required
+          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="text"
+          name="city"
+          placeholder="City"
+          value={formData.city}
+          onChange={handleChange}
+          required
+          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="text"
+          name="country"
+          placeholder="Country"
+          value={formData.country}
+          onChange={handleChange}
+          required
+          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {inputFields.map((field, index) => {
-                  const { name, ...restProps } = {
-                    name: field.name,
-                    value: formData[field.name],
-                    onChange: handleChange,
-                    onKeyDown: (e) => handleKeyDown(e, index),
-                    ref: (el) => (inputRefs.current[index] = el),
-                    className:
-                      "w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 transition",
-                    placeholder: field.placeholder,
-                    required: field.required,
-                  };
+      {/* Education */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <input
+          type="text"
+          name="highestQualification"
+          placeholder="Highest Qualification"
+          value={formData.highestQualification}
+          onChange={handleChange}
+          required
+          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+        <input
+          type="text"
+          name="institutionName"
+          placeholder="Institution Name"
+          value={formData.institutionName}
+          onChange={handleChange}
+          required
+          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+        <input
+          type="number"
+          name="graduationYear"
+          placeholder="Graduation Year"
+          value={formData.graduationYear}
+          onChange={handleChange}
+          required
+          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+        <input
+          type="number"
+          name="experienceYears"
+          placeholder="Years of Experience"
+          value={formData.experienceYears}
+          onChange={handleChange}
+          required
+          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+        <input
+          type="text"
+          name="subjectsOfExpertise"
+          placeholder="Subjects of Expertise (comma separated)"
+          value={formData.subjectsOfExpertise}
+          onChange={handleChange}
+          required
+          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+        <input
+          type="text"
+          name="pastInstitutions"
+          placeholder="Past Institutions (comma separated)"
+          value={formData.pastInstitutions}
+          onChange={handleChange}
+          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+        <input
+          type="text"
+          name="certifications"
+          placeholder="Certifications (comma separated)"
+          value={formData.certifications}
+          onChange={handleChange}
+          className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+      </div>
 
-                  if (field.type === "select") {
-                    return (
-                      <select key={field.name} name={name} {...restProps}>
-                        <option value="">{field.placeholder}</option>
-                        {field.options.map((option) => (
-                          <option key={option} value={option}>
-                            {option.charAt(0).toUpperCase() + option.slice(1)}
-                          </option>
-                        ))}
-                      </select>
-                    );
-                  }
+      {/* Uploads */}
+      <div className="space-y-4">
+        <div>
+          <label className="block mb-1 font-semibold text-gray-700">Resume (PDF)</label>
+          <input
+            type="file"
+            name="resumeUrl"
+            accept=".pdf"
+            onChange={handleFileChange}
+            required
+            className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+        </div>
 
-                  return (
-                    <input
-                      key={field.name}
-                      name={name}
-                      type={field.type || "text"}
-                      min={field.min}
-                      max={field.max}
-                      {...restProps}
-                    />
-                  );
-                })}
-              </div>
+        <div>
+          <label className="block mb-1 font-semibold text-gray-700">ID Proof (PDF, JPG, PNG)</label>
+          <input
+            type="file"
+            name="idProofUrl"
+            accept=".pdf,.jpg,.jpeg,.png"
+            onChange={handleFileChange}
+            className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+        </div>
 
-              <div className="space-y-4 pt-2">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Education Certificates *
-                  </label>
-                  <input
-                    name="educationCertificates"
-                    type="file"
-                    onChange={handleChange}
-                    multiple
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-pink-50 file:text-pink-700 hover:file:bg-pink-100"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Resume/CV *
-                  </label>
-                  <input
-                    name="resumeFile"
-                    type="file"
-                    onChange={handleChange}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-pink-50 file:text-pink-700 hover:file:bg-pink-100"
-                    required
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full mt-6 bg-gradient-to-r from-pink-600 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 transition disabled:opacity-70 flex items-center justify-center"
-              >
-                {loading ? (
-                  <>
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Processing...
-                  </>
-                ) : (
-                  "Submit Application"
-                )}
-              </button>
-
-              {message.text && (
-                <div
-                  className={`mt-4 p-3 rounded-lg ${
-                    message.type === "error"
-                      ? "bg-red-50 text-red-700"
-                      : "bg-green-50 text-green-700"
-                  }`}
-                >
-                  {message.text}
-                </div>
-              )}
-            </form>
-          </div>
+        <div>
+          <label className="block mb-1 font-semibold text-gray-700">Education Certificates (multiple allowed)</label>
+          <input
+            type="file"
+            name="educationCertificates"
+            multiple
+            accept=".pdf,.jpg,.jpeg,.png"
+            onChange={handleFileChange}
+            required
+            className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
         </div>
       </div>
-    </div>
+
+      {/* Tutoring Details */}
+      <div>
+        <input
+          type="number"
+          name="hourlyRate"
+          placeholder="Hourly Rate ($)"
+          value={formData.hourlyRate}
+          onChange={handleChange}
+          required
+          className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-yellow-500"
+        />
+      </div>
+
+      {error && (
+        <Alert variant="danger" className="mt-2">
+          {error}
+        </Alert>
+      )}
+      {success && (
+        <Alert variant="success" className="mt-2">
+          {success}
+        </Alert>
+      )}
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded disabled:opacity-50 disabled:cursor-not-allowed transition"
+      >
+        {loading ? (
+          <span className="flex justify-center items-center gap-2">
+            <svg
+              className="animate-spin h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8H4z"
+              ></path>
+            </svg>
+            Submitting...
+          </span>
+        ) : (
+          'Submit Application'
+        )}
+      </button>
+    </form>
   );
 };
 

@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useContext } from 'react';
-import TutorCard from '../components/SMALL_components/TutorCard';
-import image1 from '../assets/Top_tutors/Image1.png';
-import image2 from '../assets/Top_tutors/Image2.png';
-import image3 from '../assets/Top_tutors/Image3.png';
-import image4 from '../assets/Top_tutors/Image4.png';
-import image5 from '../assets/Top_tutors/Image5.png';
-import {UserContext} from '../context/UserContext'
+import TutorCard from '../SMALL_components/TutorCard';
+import image1 from '../../assets/Top_tutors/Image1.png';
+import image2 from '../../assets/Top_tutors/Image2.png';
+import image3 from '../../assets/Top_tutors/Image3.png';
+import image4 from '../../assets/Top_tutors/Image4.png';
+import image5 from '../../assets/Top_tutors/Image5.png';
+import {UserContext} from '../../context/UserContext'
 const TopTutors = () => {
     const [tutors, setTutors] = useState([]);
     const {user, role} = useContext(UserContext)

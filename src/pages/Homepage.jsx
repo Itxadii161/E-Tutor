@@ -1,6 +1,6 @@
-import Hero from '../components/Hero';
-import BecomeInstructor from '../components/Become_Tutor'
-import TopTutors from '../components/TopTutors';
+import Hero from '../components/HomePageComp/Hero';
+import BecomeInstructor from '../components/HomePageComp/Become_Tutor'
+import TopTutors from '../components/HomePageComp/TopTutors';
 const HomePage =()=>{
     return(
         <div>

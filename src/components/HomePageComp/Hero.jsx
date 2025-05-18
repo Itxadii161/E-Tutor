@@ -1,7 +1,7 @@
 import React,{useContext} from 'react';
 import { useNavigate } from 'react-router-dom';
-import heroImage from '../assets/Home-page-images/heroImage.png';
-import {UserContext} from '../context/UserContext'
+import heroImage from '../../assets/Home-page-images/heroImage.png';
+import {UserContext} from '../../context/UserContext'
 import { FiUsers } from 'react-icons/fi';
 
 const Hero = () => {

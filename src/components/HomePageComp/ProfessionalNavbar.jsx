@@ -1,14 +1,14 @@
 import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserContext } from '../context/UserContext';
-import { FiSearch, FiMenu, FiX, FiUser, FiLogOut, FiHome, FiUsers, FiRepeat, FiInfo } from 'react-icons/fi';
-import logo from '../assets/Home-page-images/logoImage.png';
+import { UserContext } from '../../context/UserContext';
+import { FiBell, FiMessageSquare, FiMenu, FiX, FiUser, FiLogOut, FiHome, FiUsers, FiRepeat, FiInfo } from 'react-icons/fi';
+import logo from '../../assets/Home-page-images/logoImage.png';
+import { UserCog } from "lucide-react";
 
 const ProfessionalNavbar = () => {
   const { user, logout, role } = useContext(UserContext);
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const navItems = [
     { id: '1', name: 'Home', link: '/', icon: <FiHome className="mr-2" /> },
@@ -21,23 +21,23 @@ const ProfessionalNavbar = () => {
     { id: '4', name: 'How It Works', link: '/how-it-works', icon: <FiRepeat className="mr-2" /> },
     { id: '5', name: 'About', link: '/about', icon: <FiInfo className="mr-2" /> },
   ];
-  
-  
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
-      setIsMenuOpen(false);
-    }
-  };
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
+          
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center space-x-4">
+            {user.isAdmin ?
+             <Link to='/admin'>
+            <UserCog/>
+            </Link>: 
+              <></>
+            }
+          {/* <Link to='/admin'>
+          <UserCog/>
+          </Link> */}
             <Link to="/" className="flex items-center">
               <img src={logo} alt="EduConnect Logo" className="h-10 w-auto" />
               <span className="ml-3 text-xl font-semibold text-gray-900 hidden sm:block">
@@ -48,20 +48,6 @@ const ProfessionalNavbar = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">
-            {/* Search Bar */}
-            <form onSubmit={handleSearch} className="relative w-72">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FiSearch className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search courses, tutors..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </form>
-
             {/* Navigation Links */}
             <ul className="flex space-x-6">
               {navItems.map((item) => (
@@ -76,6 +62,18 @@ const ProfessionalNavbar = () => {
                 </li>
               ))}
             </ul>
+
+            {/* Notification Icons - Always visible on desktop */}
+            {user && (
+              <div className="flex items-center space-x-4">
+                <Link to="/notify" className="text-gray-700 hover:text-indigo-600 p-1">
+                  <FiBell className="h-5 w-5" />
+                </Link>
+                <Link to="/chat" className="text-gray-700 hover:text-indigo-600 p-1">
+                  <FiMessageSquare className="h-5 w-5" />
+                </Link>
+              </div>
+            )}
 
             {/* Auth Buttons */}
             <div className="flex items-center space-x-4">
@@ -117,8 +115,20 @@ const ProfessionalNavbar = () => {
             </div>
           </nav>
 
-          {/* Mobile Menu Button */}
-          <div className="lg:hidden flex items-center">
+          {/* Mobile Icons and Menu Button */}
+          <div className="flex items-center space-x-4 lg:hidden">
+            {/* Notification Icons - Always visible on mobile */}
+            {user && (
+              <div className="flex items-center space-x-4">
+                <Link to="/notify" className="text-gray-700 hover:text-indigo-600 p-1">
+                  <FiBell className="h-5 w-5" />
+                </Link>
+                <Link to="/chat" className="text-gray-700 hover:text-indigo-600 p-1">
+                  <FiMessageSquare className="h-5 w-5" />
+                </Link>
+              </div>
+            )}
+            
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-indigo-600 hover:bg-gray-100 focus:outline-none"
@@ -137,20 +147,6 @@ const ProfessionalNavbar = () => {
       {isMenuOpen && (
         <div className="lg:hidden bg-white border-t border-gray-200">
           <div className="px-4 pt-4 pb-6 space-y-4">
-            {/* Mobile Search */}
-            <form onSubmit={handleSearch} className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FiSearch className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search courses, tutors..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </form>
-
             {/* Mobile Nav Items */}
             <nav className="grid gap-2">
               {navItems.map((item) => (

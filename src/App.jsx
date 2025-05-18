@@ -1,11 +1,7 @@
-// src/App.jsx
 import React from "react";
-
 import ScrollToTop from './components/SMALL_components/ScrollToTop';
-// import Navbar from './components/Navbar';
-import ProfessionalNavbar from "./components/ProfessionalNavbar";
-import Footer from './components/Footer';
-// import NavMenu from './components/Nav_Menu';
+import ProfessionalNavbar from "./components/HomePageComp/ProfessionalNavbar";
+import Footer from './components/HomePageComp/Footer';
 import { Outlet } from "react-router-dom"; // for nested routes
 
 function App() {
