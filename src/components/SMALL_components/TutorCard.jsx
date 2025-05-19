@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { FiStar, FiMapPin, FiDollarSign, FiAward, FiBook } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import StarRating from './StarRating'; // Adjust path as needed
 import { getUserData, rateTutor } from '../../api/apiService'; // Use your actual API service
+import { UserContext } from '../../context/UserContext'; // Adjust path
 
 const TutorCard = ({ tutor }) => {
   const navigate = useNavigate();
-
+  const { isAuthenticated } = useContext(UserContext);
   const [user, setUser] = useState(null);
   const [userRating, setUserRating] = useState(null);
   const [averageRating, setAverageRating] = useState(tutor.averageRating || 0);
@@ -14,6 +15,7 @@ const TutorCard = ({ tutor }) => {
   const [hasRatedBefore, setHasRatedBefore] = useState(false);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     const fetchUser = async () => {
       try {
         const currentUser = await getUserData();

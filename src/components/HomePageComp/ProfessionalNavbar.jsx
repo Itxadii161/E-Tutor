@@ -29,12 +29,12 @@ const ProfessionalNavbar = () => {
           
           {/* Logo */}
           <div className="flex items-center space-x-4">
-            {user.isAdmin ?
-             <Link to='/admin'>
-            <UserCog/>
-            </Link>: 
-              <></>
-            }
+           {user && user.isAdmin && (
+  <Link to='/admin'>
+    <UserCog />
+  </Link>
+)}
+
           {/* <Link to='/admin'>
           <UserCog/>
           </Link> */}

@@ -54,7 +54,7 @@ const UserProvider = ({ children }) => {
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, setUser, role, setRole, logout, updateUser, sessionExpired }}>
+    <UserContext.Provider value={{ user, isAuthenticated: !!user, setUser, role, setRole, logout, updateUser, sessionExpired }}>
       {!loading && children}
     </UserContext.Provider>
   );
