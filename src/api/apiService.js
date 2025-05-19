@@ -43,6 +43,8 @@ const googleLogin = async (credential) => {
 };
 
 const getUserData = async () => {
+  const token = localStorage.getItem("authToken");
+  if (!token) throw new Error("No token found in localStorage");
   return await apiReq('/users/getUser', 'GET');
 };
 

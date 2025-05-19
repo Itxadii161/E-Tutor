@@ -12,6 +12,7 @@ const Login = () => {
   const [message, setMessage] = useState("");
   const { setRole, setUser } = useContext(UserContext);
   const navigate = useNavigate();
+  // console.log("Google Client ID:", GOOGLE_CLIENT_ID);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -159,7 +160,7 @@ const Login = () => {
               <GoogleLogin
                 onSuccess={handleGoogleLoginSuccess}
                 onError={handleGoogleLoginFailure}
-                useOneTap
+                useOneTap={false} // try disabling One Tap for debugging
               />
               <p className="text-xs text-gray-400 text-center">
                 By logging in, you agree to our <a href="/terms" className="text-blue-500">Terms</a> and <a href="/privacy" className="text-blue-500">Privacy Policy</a>.

@@ -24,8 +24,11 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchUser();
+    const token = localStorage.getItem("authToken");
+    if (token) fetchUser();
+    else console.warn("No token found at dashboard");
   }, []);
+  
 
   if (loading) return <div className="p-4">Loading...</div>;
 
